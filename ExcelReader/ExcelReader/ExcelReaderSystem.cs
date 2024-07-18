@@ -12,15 +12,15 @@ namespace Config
     {
         private const string NameSpace = "Config";
 
-        private static Dictionary<string, string> _constCollector = new();
+        private static readonly Dictionary<string, string> _constCollector = new();
 
-        private static Dictionary<string, string> _classCollector = new();
+        private static readonly Dictionary<string, string> _classCollector = new();
 
-        private static Dictionary<string, string> _valueCollector = new();
+        private static readonly Dictionary<string, string> _valueCollector = new();
 
-        private static StringBuilder _tempStrBuilder = new();
+        private static readonly StringBuilder _tempStrBuilder = new();
 
-        private static Dictionary<int, (string, string)> _tempSheetColumn = new();
+        private static readonly Dictionary<int, (string, string)> _tempSheetColumn = new();
 
         public static void Program(string dirPath, string outPath)
         {
@@ -88,7 +88,7 @@ namespace Config
                         {
                             throw new Exception($"Sheet[{sheet.SheetName}]: The cell comment is null or empty.");
                         }
-                        
+
                         CollectClass(sheet);
                         CollectValue(sheet);
                     }
@@ -411,11 +411,10 @@ namespace Config
                     _tempStrBuilder.AppendLineWithTab("{", 4);
                     _tempStrBuilder.AppendLineWithTab($"if (!_m{sheet.SheetName}.ContainsKey({keyValueString}))", 5);
                     _tempStrBuilder.AppendLineWithTab("{", 5);
-                    _tempStrBuilder.AppendLineWithTab($"var data = new {classParam.Name}", 6);
+                    _tempStrBuilder.AppendLineWithTab($"_m{sheet.SheetName}[{keyValueString}] = new {classParam.Name}", 6);
                     _tempStrBuilder.AppendLineWithTab("{", 6);
                     _tempStrBuilder.Append(valueString);
                     _tempStrBuilder.AppendLineWithTab("};", 6);
-                    _tempStrBuilder.AppendLineWithTab($"_m{sheet.SheetName}[{keyValueString}] = data;", 6);
                     _tempStrBuilder.AppendLineWithTab("}", 5);
                     _tempStrBuilder.AppendLine();
                     _tempStrBuilder.AppendLineWithTab($"return _m{sheet.SheetName}[{keyValueString}];", 5);
@@ -429,7 +428,7 @@ namespace Config
 
                 var dictString = _tempStrBuilder.ToString();
                 _tempStrBuilder.Clear();
-                _tempStrBuilder.AppendLineWithTab($"private static Dictionary<{keyTypeString}, {classParam.Name}> _m{sheet.SheetName} = new();", 2);
+                _tempStrBuilder.AppendLineWithTab($"private static readonly Dictionary<{keyTypeString}, {classParam.Name}> _m{sheet.SheetName} = new();", 2);
                 _tempStrBuilder.AppendLineWithTab($"public static {classParam.Name} {sheet.SheetName}({keyTypeString} key)", 2);
                 _tempStrBuilder.AppendLineWithTab("{", 2);
                 _tempStrBuilder.AppendLineWithTab("switch (key)", 3);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using NPOI.SS.UserModel;
 
@@ -18,48 +19,35 @@ namespace Config
             return strBuilder;
         }
 
-        public static ClassParam GetClassParam(this ISheet sheet)
+        public static ISheetData GetSheetParam(this ISheet sheetData, string excelName)
         {
-            var cellComment = sheet.GetRow(0)?.GetCell(0)?.CellComment.String.ToString();
-            if (string.IsNullOrEmpty(cellComment))
+            var firstArray = sheetData.GetRow(0)?.GetCell(0)?.ToString()?.Split(' ');
+            if (firstArray.Length < 1)
             {
-                throw new Exception($"单[{sheet.SheetName}]: The sheet first cell comment is null.");
+                throw new Exception($"Sheet[{sheetData.SheetName}]: The sheet first cell does not comply with the rule.");
             }
 
-            string className = null;
-            string classType = null;
+            var sheetName = sheetData.SheetName;
+            var sheetType = firstArray[1];
 
-            var arrayComment = cellComment.Split('\n');
-            foreach (var item in arrayComment)
+            if (sheetType == "Enum")
             {
-                var arrayTemp = item.Split(':');
-                if (arrayTemp.Length < 2)
-                {
-                    continue;
-                }
-
-                var label = arrayTemp[0];
-                var value = arrayTemp[1];
-
-                if (label == "Name")
-                {
-                    className = value;
-                    continue;
-                }
-
-                if (label == "Type")
-                {
-                    classType = value;
-                    continue;
-                }
+                return new SheetEnum(sheetData, excelName);
             }
 
-            if (string.IsNullOrEmpty(className) || string.IsNullOrEmpty(classType) || !Enum.TryParse(classType, out ClassType eClassType))
+            if (sheetType == "Const")
             {
-                throw new Exception($"Sheet[{sheet.SheetName}] - Comment[{cellComment}]: The sheet first cell comment value is empty or invalid.");
+                return new SheetConst(sheetData, excelName);
             }
 
-            return new ClassParam(className, eClassType);
+            if (sheetName.Contains('@'))
+            {
+                return new SheetMerge(sheetData, excelName);
+            }
+            else
+            {
+                return new SheetValue(sheetData, excelName);
+            }
         }
 
         public static bool GetFieldType(this string str, out string type)
@@ -112,7 +100,7 @@ namespace Config
 
                 return $"new[] {{ {keyValue} }}";
             }
-            
+
             if (type.EndsWith("[][]"))
             {
                 var keyType = type[..^"[][]".Length];
@@ -126,7 +114,7 @@ namespace Config
                     {
                         tempArray = tempItem[1..];
                     }
-                    
+
                     if (string.IsNullOrEmpty(tempArray))
                     {
                         continue;

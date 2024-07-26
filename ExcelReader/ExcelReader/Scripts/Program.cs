@@ -6,12 +6,15 @@ namespace Config
     {
         static void Main(string[] args)
         {
+            string dirPath;
+            string outPath;
+
             if (args.Length == 0)
             {
                 Console.WriteLine("Input dirPath:");
-                var dirPath = Console.ReadLine();
+                dirPath = Console.ReadLine();
                 Console.WriteLine("Input outPath:");
-                var outPath = Console.ReadLine();
+                outPath = Console.ReadLine();
                 ExcelReaderSystem.Program(dirPath, outPath);
                 Console.WriteLine("Done! Press any key to exit...");
                 return;
@@ -19,8 +22,16 @@ namespace Config
 
             if (args.Length >= 3 && args[0] == "-path")
             {
-                ExcelReaderSystem.Program(args[1], args[2]);
+                dirPath = args[1];
+                outPath = args[2];
             }
+            else
+            {
+                return;
+            }
+
+            var isFormat = args.Length >= 4 && args[3] == "-format";
+            ExcelReaderSystem.Program(dirPath, outPath, isFormat);
         }
     }
 }

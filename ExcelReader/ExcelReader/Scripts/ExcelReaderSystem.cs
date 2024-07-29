@@ -152,57 +152,6 @@ namespace Config
             }
 
             sheetItems.Add(sheetEnum);
-
-            ////////////////////////////////////////////////////
-            // if (sheet.LastRowNum < 1)
-            // {
-            //     throw new Exception($"Sheet[{sheet.SheetName}]: The sheet rows is invalid.");
-            // }
-            //
-            // _tempStrBuilder.Clear();
-            //
-            // var isFirstWrite = false;
-            // for (var i = 1; i <= sheet.LastRowNum; i++)
-            // {
-            //     var rowItem = sheet.GetRow(i);
-            //
-            //     var field = rowItem?.GetCell(0)?.ToString();
-            //     if (string.IsNullOrEmpty(field) || field.StartsWith('#'))
-            //     {
-            //         continue;
-            //     }
-            //
-            //     if (!isFirstWrite)
-            //     {
-            //         isFirstWrite = true;
-            //     }
-            //     else
-            //     {
-            //         _tempStrBuilder.AppendLine();
-            //     }
-            //
-            //     var summary = rowItem.GetCell(1)?.ToString();
-            //     if (!string.IsNullOrEmpty(summary))
-            //     {
-            //         _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
-            //     }
-            //
-            //     _tempStrBuilder.AppendLineWithTab($"{field},", 2);
-            // }
-            //
-            // if (_tempStrBuilder.Length == 0)
-            // {
-            //     return;
-            // }
-            //
-            // var contentString = _tempStrBuilder.ToString();
-            // _tempStrBuilder.Clear();
-            // _tempStrBuilder.AppendLineWithTab($"public enum {sheetParam.ScriptName}");
-            // _tempStrBuilder.AppendLineWithTab("{");
-            // _tempStrBuilder.Append(contentString);
-            // _tempStrBuilder.AppendLineWithTab("}");
-            //
-            // _constCollector.Add(sheetParam.ScriptName, _tempStrBuilder.ToString());
         }
 
         private static void CollectConst(ISheetData sheetData)
@@ -243,63 +192,6 @@ namespace Config
             }
 
             sheetItems.Add(sheetConst);
-
-
-            // if (_constCollector.ContainsKey(sheet.SheetName))
-            // {
-            //     return;
-            // }
-            //
-            // _tempStrBuilder.Clear();
-            //
-            // var isFirstWrite = false;
-            // for (var i = 1; i <= sheet.LastRowNum; i++)
-            // {
-            //     var rowItem = sheet.GetRow(i);
-            //
-            //     var field = rowItem?.GetCell(0)?.ToString();
-            //     if (string.IsNullOrEmpty(field) || field.StartsWith('#'))
-            //     {
-            //         continue;
-            //     }
-            //
-            //     if (!isFirstWrite)
-            //     {
-            //         isFirstWrite = true;
-            //     }
-            //     else
-            //     {
-            //         _tempStrBuilder.AppendLine();
-            //     }
-            //
-            //     var summary = rowItem.GetCell(2)?.ToString();
-            //     if (!string.IsNullOrEmpty(summary))
-            //     {
-            //         _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
-            //     }
-            //
-            //     var type = rowItem.GetCell(1)?.ToString();
-            //     if (string.IsNullOrEmpty(type) || !type.GetFieldType(out var typeString))
-            //     {
-            //         throw new Exception($"Sheet[{sheet.SheetName}] - Row[{i + 1}] - Col[2] - Value[{type}]: The value is empty or invalid.");
-            //     }
-            //
-            //     var value = rowItem.GetCell(3)?.ToString();
-            //     if (string.IsNullOrEmpty(value))
-            //     {
-            //         throw new Exception($"Sheet[{sheet.SheetName}] - Row[{i + 1}] - Col[3] - Value[{value}]: The value is empty.");
-            //     }
-            //
-            //     var valueString = value.GetFiledValue(type);
-            //     _tempStrBuilder.AppendLineWithTab($"public {typeString} {field} = {valueString};", 2);
-            // }
-            //
-            // if (_tempStrBuilder.Length == 0)
-            // {
-            //     return;
-            // }
-            //
-            // _constCollector.Add(sheet.SheetName, _tempStrBuilder.ToString());
         }
 
         private static void CollectValue(ISheetData sheetData)
@@ -362,72 +254,6 @@ namespace Config
                 sheetList = [sheetValue];
                 sheetItems.Add(sheetList);
             }
-
-
-            ////////////////////////////////////////////////////////
-
-            // if (sheet.LastRowNum < 3)
-            // {
-            //     throw new Exception($"Sheet[{sheet.SheetName}]: The sheet rows is invalid.");
-            // }
-            //
-            // _tempStrBuilder.Clear();
-            // var rowField = sheet.GetRow(0);
-            // var rowType = sheet.GetRow(1);
-            // var rowSummary = sheet.GetRow(2);
-
-            // var isFirstWrite = false;
-            // for (var i = 0; i < rowField.LastCellNum; i++)
-            // {
-            //     var field = rowField.GetCell(i)?.ToString();
-            //     if (string.IsNullOrEmpty(field) || field.StartsWith('#'))
-            //     {
-            //         continue;
-            //     }
-            //
-            //     if (!isFirstWrite)
-            //     {
-            //         isFirstWrite = true;
-            //     }
-            //     else
-            //     {
-            //         _tempStrBuilder.AppendLine();
-            //     }
-            //
-            //     var summary = rowSummary.GetCell(i)?.ToString();
-            //     if (!string.IsNullOrEmpty(summary))
-            //     {
-            //         _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
-            //     }
-            //
-            //     var type = rowType.GetCell(i)?.ToString();
-            //     if (string.IsNullOrEmpty(type) || !type.GetFieldType(out var typeString))
-            //     {
-            //         throw new Exception($"Sheet[{sheet.SheetName}] - Row[3] - Col[{i + 1}] - Value[{type}]: The value is empty or invalid.");
-            //     }
-            //
-            //     _tempStrBuilder.AppendLineWithTab($"public {typeString} {field};", 2);
-            // }
-            //
-            // if (_tempStrBuilder.Length == 0)
-            // {
-            //     return;
-            // }
-            //
-            // var contentString = _tempStrBuilder.ToString();
-            // _tempStrBuilder.Clear();
-            // _tempStrBuilder.AppendLine("//This file is automatically generated, please do not modify it manually");
-            // _tempStrBuilder.AppendLine();
-            // _tempStrBuilder.AppendLine("using System.Collections.Generic;");
-            // _tempStrBuilder.AppendLine();
-            // _tempStrBuilder.AppendLine($"namespace {NameSpace}");
-            // _tempStrBuilder.AppendLine("{");
-            // _tempStrBuilder.AppendLineWithTab($"public partial class {classParam.ScriptName}");
-            // _tempStrBuilder.AppendLineWithTab("{");
-            // _tempStrBuilder.Append(contentString);
-            // _tempStrBuilder.AppendLineWithTab("}");
-            // _tempStrBuilder.AppendLine("}");
-            // _classCollector.Add(classParam.ScriptName, _tempStrBuilder.ToString());
         }
 
         private static void CollectMerge(ISheetData sheetData)
@@ -750,8 +576,8 @@ namespace Config
             {
                 foreach (var sheetData in sheetItems)
                 {
-                    var content = GenerateSheet(path, sheetData);
-                    if (string.IsNullOrEmpty(content))
+                    var content = GenerateSheet(sheetData, out var fileName);
+                    if (string.IsNullOrEmpty(content) || string.IsNullOrEmpty(fileName))
                     {
                         continue;
                     }
@@ -762,43 +588,230 @@ namespace Config
                     _tempStrBuilder.AppendLine();
                     _tempStrBuilder.AppendLine($"namespace {NameSpace}");
                     _tempStrBuilder.AppendLine("{");
-                    _tempStrBuilder.AppendLineWithTab($"public partial class {ClassName}");
-                    _tempStrBuilder.AppendLineWithTab("{");
                     _tempStrBuilder.Append(content);
-                    _tempStrBuilder.AppendLineWithTab("}");
                     _tempStrBuilder.AppendLine("}");
 
-                    File.WriteAllText(Path.Combine(path, $"{excelName}{fieldName}Data.cs"), _tempStrBuilder.ToString());
+                    File.WriteAllText(Path.Combine(path, $"{fileName}.cs"), _tempStrBuilder.ToString());
                 }
             }
         }
 
-        private static string GenerateSheet(string path, object sheetObject)
+        private static string GenerateSheet(object sheetObject, out string fileName)
         {
             if (sheetObject is SheetEnum sheetEnum)
             {
-                return GenerateEnum(path, sheetEnum);
+                return GenerateEnum(sheetEnum, out fileName);
             }
 
+            if (sheetObject is SheetConst sheetConst)
+            {
+                return GenerateConst(sheetConst, out fileName);
+            }
+
+            if (sheetObject is List<ISheetData> sheetList)
+            {
+                return GenerateList(sheetList, out fileName);
+            }
+
+            fileName = string.Empty;
             return string.Empty;
         }
 
-        private static string GenerateEnum(string path, SheetEnum sheetData)
+        private static string GenerateEnum(SheetEnum sheetEnum, out string fileName)
         {
-            var tableName = $"{sheetData.ExcelName}{sheetData.FieldName}{SheetSuffix}";
-            _tempStrBuilder.AppendLine("//This file is automatically generated, please do not modify it manually");
-            _tempStrBuilder.AppendLine();
-            _tempStrBuilder.AppendLine("using System.Collections.Generic;");
-            _tempStrBuilder.AppendLine();
-            _tempStrBuilder.AppendLine($"namespace {NameSpace}");
-            _tempStrBuilder.AppendLine("{");
-            _tempStrBuilder.AppendLineWithTab($"public partial class {tableName}");
-            _tempStrBuilder.AppendLineWithTab("{");
-            _tempStrBuilder.Append(content);
-            _tempStrBuilder.AppendLineWithTab("}");
-            _tempStrBuilder.AppendLine("}");
+            fileName = $"{sheetEnum.ExcelName}{sheetEnum.FieldName}{SheetSuffix}";
 
-            File.WriteAllText(Path.Combine(path, $"{tableName}.cs"), _tempStrBuilder.ToString());
+            _tempStrBuilder.Clear();
+
+            const int fieldColumn = 0;
+            const int summaryColumn = 1;
+            const int valueColumn = 2;
+
+            var sheetData = sheetEnum.SheetData;
+            var isFirstWrite = false;
+            for (var i = 1; i <= sheetData.LastRowNum; i++)
+            {
+                var rowItem = sheetData.GetRow(i);
+
+                var field = rowItem?.GetCell(fieldColumn)?.ToString();
+                if (string.IsNullOrEmpty(field) || field.StartsWith('#'))
+                {
+                    continue;
+                }
+
+                if (!isFirstWrite)
+                {
+                    isFirstWrite = true;
+                }
+                else
+                {
+                    _tempStrBuilder.AppendLine();
+                }
+
+                var summary = rowItem.GetCell(summaryColumn)?.ToString();
+                if (!string.IsNullOrEmpty(summary))
+                {
+                    _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
+                }
+
+                var value = rowItem.GetCell(valueColumn)?.ToString();
+                if (string.IsNullOrEmpty(value))
+                {
+                    throw new Exception($"Excel[{sheetEnum.ExcelName}] Sheet[{sheetEnum.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{value}]: The value is empty.");
+                }
+
+                _tempStrBuilder.AppendLineWithTab($"{field} = {value},", 2);
+            }
+
+            if (_tempStrBuilder.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var contentString = _tempStrBuilder.ToString();
+            _tempStrBuilder.Clear();
+
+            _tempStrBuilder.AppendLineWithTab($"public class {fileName}");
+            _tempStrBuilder.AppendLineWithTab("{");
+            _tempStrBuilder.Append(contentString);
+            _tempStrBuilder.AppendLineWithTab("}");
+            return _tempStrBuilder.ToString();
+        }
+
+        private static string GenerateConst(SheetConst sheetConst, out string fileName)
+        {
+            fileName = $"{sheetConst.ExcelName}{sheetConst.FieldName}{SheetSuffix}";
+
+            _tempStrBuilder.Clear();
+
+            const int fieldColumn = 0;
+            const int typeColumn = 1;
+            const int summaryColumn = 2;
+            const int valueColumn = 3;
+
+            var sheetData = sheetConst.SheetData;
+            var isFirstWrite = false;
+            for (var i = 1; i <= sheetData.LastRowNum; i++)
+            {
+                var rowItem = sheetData.GetRow(i);
+
+                var field = rowItem?.GetCell(fieldColumn)?.ToString();
+                if (string.IsNullOrEmpty(field) || field.StartsWith('#'))
+                {
+                    continue;
+                }
+
+                if (!isFirstWrite)
+                {
+                    isFirstWrite = true;
+                }
+                else
+                {
+                    _tempStrBuilder.AppendLine();
+                }
+
+                var typeString = rowItem.GetCell(typeColumn)?.ToString();
+                if (string.IsNullOrEmpty(typeString) || !typeString.GetFieldType(out var type))
+                {
+                    throw new Exception($"Excel[{sheetConst.ExcelName}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{typeColumn + 1}] - Value[{typeString}]: The value is empty or invalid.");
+                }
+
+                var summary = rowItem.GetCell(summaryColumn)?.ToString();
+                if (!string.IsNullOrEmpty(summary))
+                {
+                    _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
+                }
+
+                var valueString = rowItem.GetCell(valueColumn)?.ToString();
+                if (string.IsNullOrEmpty(valueString) || !valueString.GetFiledValue(typeString, out var value))
+                {
+                    throw new Exception($"Excel[{sheetConst.ExcelName}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{valueString}]: The value is empty or invalid.");
+                }
+
+                _tempStrBuilder.AppendLineWithTab($"public {type} {field} = {value};", 2);
+            }
+
+            if (_tempStrBuilder.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var contentString = _tempStrBuilder.ToString();
+            _tempStrBuilder.Clear();
+
+            _tempStrBuilder.AppendLineWithTab($"public class {fileName}");
+            _tempStrBuilder.AppendLineWithTab("{");
+            _tempStrBuilder.Append(contentString);
+            _tempStrBuilder.AppendLineWithTab("}");
+            return _tempStrBuilder.ToString();
+        }
+
+        private static string GenerateList(List<ISheetData> sheetList, out string fileName)
+        {
+            fileName = $"{sheetList.ExcelName}{sheetList.FieldName}{SheetSuffix}";
+
+            _tempStrBuilder.Clear();
+
+            const int fieldColumn = 0;
+            const int typeColumn = 1;
+            const int summaryColumn = 2;
+            const int valueColumn = 3;
+
+            var sheetData = sheetList.SheetData;
+            var isFirstWrite = false;
+            for (var i = 1; i <= sheetData.LastRowNum; i++)
+            {
+                var rowItem = sheetData.GetRow(i);
+
+                var field = rowItem?.GetCell(fieldColumn)?.ToString();
+                if (string.IsNullOrEmpty(field) || field.StartsWith('#'))
+                {
+                    continue;
+                }
+
+                if (!isFirstWrite)
+                {
+                    isFirstWrite = true;
+                }
+                else
+                {
+                    _tempStrBuilder.AppendLine();
+                }
+
+                var typeString = rowItem.GetCell(typeColumn)?.ToString();
+                if (string.IsNullOrEmpty(typeString) || !typeString.GetFieldType(out var type))
+                {
+                    throw new Exception($"Excel[{sheetList.ExcelName}] Sheet[{sheetList.SheetName}] - Row[{i + 1}] - Col[{typeColumn + 1}] - Value[{typeString}]: The value is empty or invalid.");
+                }
+
+                var summary = rowItem.GetCell(summaryColumn)?.ToString();
+                if (!string.IsNullOrEmpty(summary))
+                {
+                    _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
+                }
+
+                var valueString = rowItem.GetCell(valueColumn)?.ToString();
+                if (string.IsNullOrEmpty(valueString) || !valueString.GetFiledValue(typeString, out var value))
+                {
+                    throw new Exception($"Excel[{sheetList.ExcelName}] Sheet[{sheetList.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{valueString}]: The value is empty or invalid.");
+                }
+
+                _tempStrBuilder.AppendLineWithTab($"public {type} {field} = {value};", 2);
+            }
+
+            if (_tempStrBuilder.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var contentString = _tempStrBuilder.ToString();
+            _tempStrBuilder.Clear();
+
+            _tempStrBuilder.AppendLineWithTab($"public class {fileName}");
+            _tempStrBuilder.AppendLineWithTab("{");
+            _tempStrBuilder.Append(contentString);
+            _tempStrBuilder.AppendLineWithTab("}");
+            return _tempStrBuilder.ToString();
         }
 
         private static void ThrowException(ISheetData sheetDataA, ISheetData sheetDataB)

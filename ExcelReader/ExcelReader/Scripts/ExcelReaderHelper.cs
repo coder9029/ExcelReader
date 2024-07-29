@@ -22,7 +22,7 @@ namespace Config
         public static ISheetData GetSheetParam(this ISheet sheetData, string excelName)
         {
             var firstArray = sheetData.GetRow(0)?.GetCell(0)?.ToString()?.Split(' ');
-            if (firstArray.Length < 1)
+            if (firstArray == null || firstArray.Length < 1)
             {
                 throw new Exception($"Sheet[{sheetData.SheetName}]: The sheet first cell does not comply with the rule.");
             }
@@ -50,27 +50,45 @@ namespace Config
             }
         }
 
+        public static bool GetCellParam(this string str, out string value, out string model)
+        {
+            if (str.Contains(' '))
+            {
+                var strArray = str.Split(' ');
+                value = strArray[0];
+                model = strArray[1];
+                return true;
+            }
+
+            value = str;
+            model = string.Empty;
+            return false;
+        }
+
         public static bool GetFieldType(this string str, out string type)
         {
             type = str;
             return true;
         }
 
-        public static string GetFiledValue(this string str, string type)
+        public static bool GetFiledValue(this string str, string type, out string value)
         {
             if (type == "bool")
             {
-                return str.ToLower();
+                value = str.ToLower();
+                return true;
             }
 
             if (type == "float")
             {
-                return $"{str}f";
+                value = $"{str}f";
+                return true;
             }
 
             if (type == "string")
             {
-                return str.StartsWith("$\"") && str.EndsWith('"') ? str : $"\"{str}\"";
+                value = str.StartsWith("$\"") && str.EndsWith('"') ? str : $"\"{str}\"";
+                return true;
             }
 
             if (type.EndsWith("[]") && !type.EndsWith("[][]"))
@@ -86,7 +104,11 @@ namespace Config
                         continue;
                     }
 
-                    var realValue = tempItem.GetFiledValue(keyType);
+                    if (!tempItem.GetFiledValue(keyType, out var realValue))
+                    {
+                        value = null;
+                        return false;
+                    }
 
                     if (string.IsNullOrEmpty(keyValue))
                     {
@@ -98,7 +120,8 @@ namespace Config
                     }
                 }
 
-                return $"new[] {{ {keyValue} }}";
+                value = $"new[] {{ {keyValue} }}";
+                return true;
             }
 
             if (type.EndsWith("[][]"))
@@ -120,7 +143,11 @@ namespace Config
                         continue;
                     }
 
-                    var realValue = tempArray.GetFiledValue($"{keyType}[]");
+                    if (!tempItem.GetFiledValue(keyType, out var realValue))
+                    {
+                        value = null;
+                        return false;
+                    }
 
                     if (string.IsNullOrEmpty(keyValue))
                     {
@@ -132,10 +159,12 @@ namespace Config
                     }
                 }
 
-                return $"new[] {{ {keyValue} }}";
+                value = $"new[] {{ {keyValue} }}";
+                return true;
             }
 
-            return str;
+            value = null;
+            return false;
         }
 
         public static bool IsDictKeyValid(this string str)

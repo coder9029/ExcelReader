@@ -334,7 +334,7 @@ namespace Config
                         continue;
                     }
 
-                    if (sheetType == SheetType.Value)
+                    if (sheetType == ESheetType.Value)
                     {
                         continue;
                     }
@@ -357,7 +357,7 @@ namespace Config
                 _excelCollector[mergeData.ExcelName] = sheetItem;
             }
 
-            sheetItem.Add((mergeData.FieldName, SheetType.Value, [mergeData]));
+            sheetItem.Add((mergeData.FieldName, ESheetType.Value, [mergeData]));
 
 
             // var classParam = sheet.GetSheetParam();

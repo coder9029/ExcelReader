@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using NPOI.SS.Formula.Functions;
 using NPOI.SS.UserModel;
 
 namespace Config
@@ -135,5 +138,160 @@ namespace Config
                 MergeExcel = pointArray[0];
             }
         }
+    }
+
+    public class SheetCollector : IEnumerable, IEnumerable<>
+    {
+        private readonly ESheetType sheetType;
+        private readonly int columnIndex;
+        private readonly object collector;
+
+        public SheetCollector(Dictionary<int, SheetHeader> header, int index)
+        {
+            if (!header.TryGetValue(index, out var headerData))
+            {
+                throw new Exception("This index data is not included");
+            }
+            
+            sheetType = headerData.ESheetType;
+            columnIndex = index;
+
+            switch (type)
+            {
+                case ESheetType.List:
+                {
+                    collector = new List<IRow>();
+                    break;
+                }
+
+                case ESheetType.Dict:
+                {
+                    
+                }
+            }
+
+            foreach (var VARIABLE in this)
+            {
+                
+            }
+        }
+        
+        public IEnumerator GetEnumerator()
+        {
+            if (sheetType == ESheetType.List && collector is List<IRow> list)
+            {
+                return list;
+            }
+            
+            if (sheetType == ESheetType.Dict)
+            {
+                var key = rowData.GetCell(columnIndex).ToString();
+                if (string.IsNullOrEmpty(key))
+                {
+                    throw new Exception();
+                }
+                
+                if (collector is Dictionary<string, IRow> dictRow)
+                {
+                    return dictRow;
+                }
+                
+                if (collector is SheetCollector dictCollector)
+                {
+                    if (dictCollector.TryAdd(rowData))
+                    {
+                        return true;
+                    }
+                    
+                    throw new Exception("");
+                }
+            }
+        }
+        
+        public bool TryAdd(IRow rowData)
+        {
+            if (sheetType == ESheetType.List && collector is List<IRow> list)
+            {
+                list.Add(rowData);
+                return true;
+            }
+
+            if (sheetType == ESheetType.Dict)
+            {
+                var key = rowData.GetCell(columnIndex).ToString();
+                if (string.IsNullOrEmpty(key))
+                {
+                    throw new Exception();
+                }
+                
+                if (collector is Dictionary<string, IRow> dictRow)
+                {
+                    if (dictRow.TryAdd(key, rowData))
+                    {
+                        return true;
+                    }
+                    
+                    throw new Exception("");
+                }
+                
+                if (collector is SheetCollector dictCollector)
+                {
+                    if (dictCollector.TryAdd(rowData))
+                    {
+                        return true;
+                    }
+                    
+                    throw new Exception("");
+                }
+            }
+
+            return false;
+        }
+
+        public void Add(string key,  IRow value)
+        {
+            if (collector is SheetDict dict)
+            {
+                dict.Add(key, value);
+            }
+
+            if (collector is SheetList list)
+            {
+                list.Add(value);
+            }
+        }
+    }
+
+    public struct SheetHeader
+    {
+        public string FieldName;
+        public string FieldType;
+        public ESheetType ESheetType;
+    }
+
+    public enum ESheetType
+    {
+        None,
+        List,
+        Dict,
+    }
+
+    public class SheetDict(ESheetType type, int index) : Dictionary<string, object>
+    {
+        public ESheetType RowType = type;
+        public int RowIndex = index;
+
+        public void Add(IRow rowData)
+        {
+            if (RowType == ESheetType.List)
+            {
+                base.Add();
+            }
+        }
+    }
+
+    public class SheetList : List<object>
+    {
+        
     }
 }

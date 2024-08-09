@@ -7,7 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
-namespace Config
+namespace ExcelReader
 {
     public static class ExcelReaderSystem
     {
@@ -19,7 +19,7 @@ namespace Config
 
         private static readonly Dictionary<string, List<object>> _excelCollector = new();
 
-        private static readonly StringBuilder _tempStrBuilder = new();
+        public static readonly StringBuilder StringBuilder = new();
 
         private static readonly Dictionary<int, (string, string)> _tempSheetColumn = new();
 
@@ -121,10 +121,10 @@ namespace Config
                 return;
             }
 
-            if (!_excelCollector.TryGetValue(sheetEnum.ExcelName, out var sheetItems))
+            if (!_excelCollector.TryGetValue(sheetEnum.ExcelExcel, out var sheetItems))
             {
                 sheetItems = [];
-                _excelCollector[sheetEnum.ExcelName] = sheetItems;
+                _excelCollector[sheetEnum.ExcelExcel] = sheetItems;
             }
 
             foreach (var objects in sheetItems)
@@ -161,17 +161,17 @@ namespace Config
                 return;
             }
 
-            if (!_excelCollector.TryGetValue(sheetConst.ExcelName, out var sheetItems))
+            if (!_excelCollector.TryGetValue(sheetConst.ExcelExcel, out var sheetItems))
             {
                 sheetItems = [];
-                _excelCollector[sheetConst.ExcelName] = sheetItems;
+                _excelCollector[sheetConst.ExcelExcel] = sheetItems;
             }
 
             foreach (var objects in sheetItems)
             {
                 if (objects is ISheetData tempData)
                 {
-                    if (tempData.FieldName != sheetConst.FieldName)
+                    if (tempData.FieldName != sheetConst.TableName)
                     {
                         continue;
                     }
@@ -182,7 +182,7 @@ namespace Config
                 if (objects is List<ISheetData> tempList)
                 {
                     var tempFirst = tempList.First();
-                    if (tempFirst.FieldName != sheetConst.FieldName)
+                    if (tempFirst.FieldName != sheetConst.TableName)
                     {
                         continue;
                     }
@@ -201,10 +201,10 @@ namespace Config
                 return;
             }
 
-            if (!_excelCollector.TryGetValue(sheetValue.ExcelName, out var sheetItems))
+            if (!_excelCollector.TryGetValue(sheetValue.ExcelExcel, out var sheetItems))
             {
                 sheetItems = [];
-                _excelCollector[sheetValue.ExcelName] = sheetItems;
+                _excelCollector[sheetValue.ExcelExcel] = sheetItems;
             }
 
             List<ISheetData> sheetList = null;
@@ -231,12 +231,12 @@ namespace Config
 
                     sheetList = tempList;
 
-                    if (tempFirst is SheetValue tempValue && tempValue.ScriptName == sheetValue.ScriptName)
+                    if (tempFirst is SheetValue tempValue && tempValue.TableName == sheetValue.TableName)
                     {
                         continue;
                     }
 
-                    if (tempFirst is SheetMerge tempMerge && tempMerge.ScriptName == sheetValue.ScriptName)
+                    if (tempFirst is SheetMerge tempMerge && tempMerge.TableName == sheetValue.TableName)
                     {
                         continue;
                     }
@@ -293,12 +293,12 @@ namespace Config
 
                     sheetList = tempList;
 
-                    if (tempFirst is SheetValue tempValue && tempValue.ScriptName == sheetMerge.ScriptName)
+                    if (tempFirst is SheetValue tempValue && tempValue.TableName == sheetMerge.TableName)
                     {
                         continue;
                     }
 
-                    if (tempFirst is SheetMerge tempMerge && tempMerge.ScriptName == sheetMerge.ScriptName)
+                    if (tempFirst is SheetMerge tempMerge && tempMerge.TableName == sheetMerge.TableName)
                     {
                         continue;
                     }
@@ -325,7 +325,7 @@ namespace Config
                 return;
             }
 
-            if (_excelCollector.TryGetValue(mergeData.ExcelName, out var sheetItem))
+            if (_excelCollector.TryGetValue(mergeData.ExcelExcel, out var sheetItem))
             {
                 foreach (var (fieldName, sheetType, sheetList) in sheetItem)
                 {
@@ -334,7 +334,7 @@ namespace Config
                         continue;
                     }
 
-                    if (sheetType == ESheetType.Value)
+                    if (sheetType == ESheetCollector.Value)
                     {
                         continue;
                     }
@@ -343,7 +343,7 @@ namespace Config
                     var recordExcelName = recordSheetData.ExcelName;
                     var recordSheetName = recordSheetData.SheetName;
 
-                    var targetExcelName = mergeData.ExcelName;
+                    var targetExcelName = mergeData.ExcelExcel;
                     var targetSheetName = mergeData.SheetName;
 
                     var sheetA = $"ExcelA[{recordExcelName}] SheetA[{recordSheetName}] ;";
@@ -354,10 +354,10 @@ namespace Config
             else
             {
                 sheetItem = [];
-                _excelCollector[mergeData.ExcelName] = sheetItem;
+                _excelCollector[mergeData.ExcelExcel] = sheetItem;
             }
 
-            sheetItem.Add((mergeData.FieldName, ESheetType.Value, [mergeData]));
+            sheetItem.Add((mergeData.FieldName, ESheetCollector.Value, [mergeData]));
 
 
             // var classParam = sheet.GetSheetParam();
@@ -582,16 +582,16 @@ namespace Config
                         continue;
                     }
 
-                    _tempStrBuilder.AppendLine("//This file is automatically generated, please do not modify it manually");
-                    _tempStrBuilder.AppendLine();
-                    _tempStrBuilder.AppendLine("using System.Collections.Generic;");
-                    _tempStrBuilder.AppendLine();
-                    _tempStrBuilder.AppendLine($"namespace {NameSpace}");
-                    _tempStrBuilder.AppendLine("{");
-                    _tempStrBuilder.Append(content);
-                    _tempStrBuilder.AppendLine("}");
+                    StringBuilder.AppendLine("//This file is automatically generated, please do not modify it manually");
+                    StringBuilder.AppendLine();
+                    StringBuilder.AppendLine("using System.Collections.Generic;");
+                    StringBuilder.AppendLine();
+                    StringBuilder.AppendLine($"namespace {NameSpace}");
+                    StringBuilder.AppendLine("{");
+                    StringBuilder.Append(content);
+                    StringBuilder.AppendLine("}");
 
-                    File.WriteAllText(Path.Combine(path, $"{fileName}.cs"), _tempStrBuilder.ToString());
+                    File.WriteAllText(Path.Combine(path, $"{fileName}.cs"), StringBuilder.ToString());
                 }
             }
         }
@@ -605,7 +605,7 @@ namespace Config
 
             if (sheetObject is SheetConst sheetConst)
             {
-                return GenerateConst(sheetConst, out fileName);
+                return  GenerateConst(sheetConst, out fileName);
             }
 
             if (sheetObject is List<ISheetData> sheetList)
@@ -619,9 +619,9 @@ namespace Config
 
         private static string GenerateEnum(SheetEnum sheetEnum, out string fileName)
         {
-            fileName = $"{sheetEnum.ExcelName}{sheetEnum.FieldName}{SheetSuffix}";
+            fileName = $"{sheetEnum.ExcelExcel}{sheetEnum.FieldName}{SheetSuffix}";
 
-            _tempStrBuilder.Clear();
+            StringBuilder.Clear();
 
             const int fieldColumn = 0;
             const int summaryColumn = 1;
@@ -645,44 +645,44 @@ namespace Config
                 }
                 else
                 {
-                    _tempStrBuilder.AppendLine();
+                    StringBuilder.AppendLine();
                 }
 
                 var summary = rowItem.GetCell(summaryColumn)?.ToString();
                 if (!string.IsNullOrEmpty(summary))
                 {
-                    _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
+                    StringBuilder.AppendTab($"/// <summary>{summary}</summary>", 2);
                 }
 
                 var value = rowItem.GetCell(valueColumn)?.ToString();
                 if (string.IsNullOrEmpty(value))
                 {
-                    throw new Exception($"Excel[{sheetEnum.ExcelName}] Sheet[{sheetEnum.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{value}]: The value is empty.");
+                    throw new Exception($"Excel[{sheetEnum.ExcelExcel}] Sheet[{sheetEnum.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{value}]: The value is empty.");
                 }
 
-                _tempStrBuilder.AppendLineWithTab($"{field} = {value},", 2);
+                StringBuilder.AppendTab($"{field} = {value},", 2);
             }
 
-            if (_tempStrBuilder.Length == 0)
+            if (StringBuilder.Length == 0)
             {
                 return string.Empty;
             }
 
-            var contentString = _tempStrBuilder.ToString();
-            _tempStrBuilder.Clear();
+            var contentString = StringBuilder.ToString();
+            StringBuilder.Clear();
 
-            _tempStrBuilder.AppendLineWithTab($"public class {fileName}");
-            _tempStrBuilder.AppendLineWithTab("{");
-            _tempStrBuilder.Append(contentString);
-            _tempStrBuilder.AppendLineWithTab("}");
-            return _tempStrBuilder.ToString();
+            StringBuilder.AppendTab($"public class {fileName}");
+            StringBuilder.AppendTab("{");
+            StringBuilder.Append(contentString);
+            StringBuilder.AppendTab("}");
+            return StringBuilder.ToString();
         }
 
         private static string GenerateConst(SheetConst sheetConst, out string fileName)
         {
-            fileName = $"{sheetConst.ExcelName}{sheetConst.FieldName}{SheetSuffix}";
+            fileName = $"{sheetConst.ExcelExcel}{sheetConst.TableName}{SheetSuffix}";
 
-            _tempStrBuilder.Clear();
+            StringBuilder.Clear();
 
             const int fieldColumn = 0;
             const int typeColumn = 1;
@@ -707,50 +707,50 @@ namespace Config
                 }
                 else
                 {
-                    _tempStrBuilder.AppendLine();
+                    StringBuilder.AppendLine();
                 }
 
                 var typeString = rowItem.GetCell(typeColumn)?.ToString();
                 if (string.IsNullOrEmpty(typeString) || !typeString.GetFieldType(out var type))
                 {
-                    throw new Exception($"Excel[{sheetConst.ExcelName}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{typeColumn + 1}] - Value[{typeString}]: The value is empty or invalid.");
+                    throw new Exception($"Excel[{sheetConst.ExcelExcel}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{typeColumn + 1}] - Value[{typeString}]: The value is empty or invalid.");
                 }
 
                 var summary = rowItem.GetCell(summaryColumn)?.ToString();
                 if (!string.IsNullOrEmpty(summary))
                 {
-                    _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
+                    StringBuilder.AppendTab($"/// <summary>{summary}</summary>", 2);
                 }
 
                 var valueString = rowItem.GetCell(valueColumn)?.ToString();
                 if (string.IsNullOrEmpty(valueString) || !valueString.GetFiledValue(typeString, out var value))
                 {
-                    throw new Exception($"Excel[{sheetConst.ExcelName}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{valueString}]: The value is empty or invalid.");
+                    throw new Exception($"Excel[{sheetConst.ExcelExcel}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{valueString}]: The value is empty or invalid.");
                 }
 
-                _tempStrBuilder.AppendLineWithTab($"public {type} {field} = {value};", 2);
+                StringBuilder.AppendTab($"public {type} {field} = {value};", 2);
             }
 
-            if (_tempStrBuilder.Length == 0)
+            if (StringBuilder.Length == 0)
             {
                 return string.Empty;
             }
 
-            var contentString = _tempStrBuilder.ToString();
-            _tempStrBuilder.Clear();
+            var contentString = StringBuilder.ToString();
+            StringBuilder.Clear();
 
-            _tempStrBuilder.AppendLineWithTab($"public class {fileName}");
-            _tempStrBuilder.AppendLineWithTab("{");
-            _tempStrBuilder.Append(contentString);
-            _tempStrBuilder.AppendLineWithTab("}");
-            return _tempStrBuilder.ToString();
+            StringBuilder.AppendTab($"public class {fileName}");
+            StringBuilder.AppendTab("{");
+            StringBuilder.Append(contentString);
+            StringBuilder.AppendTab("}");
+            return StringBuilder.ToString();
         }
 
         private static string GenerateList(List<ISheetData> sheetList, out string fileName)
         {
             fileName = $"{sheetList.ExcelName}{sheetList.FieldName}{SheetSuffix}";
 
-            _tempStrBuilder.Clear();
+            StringBuilder.Clear();
 
             const int fieldColumn = 0;
             const int typeColumn = 1;
@@ -775,7 +775,7 @@ namespace Config
                 }
                 else
                 {
-                    _tempStrBuilder.AppendLine();
+                    StringBuilder.AppendLine();
                 }
 
                 var typeString = rowItem.GetCell(typeColumn)?.ToString();
@@ -787,7 +787,7 @@ namespace Config
                 var summary = rowItem.GetCell(summaryColumn)?.ToString();
                 if (!string.IsNullOrEmpty(summary))
                 {
-                    _tempStrBuilder.AppendLineWithTab($"/// <summary>{summary}</summary>", 2);
+                    StringBuilder.AppendTab($"/// <summary>{summary}</summary>", 2);
                 }
 
                 var valueString = rowItem.GetCell(valueColumn)?.ToString();
@@ -796,30 +796,30 @@ namespace Config
                     throw new Exception($"Excel[{sheetList.ExcelName}] Sheet[{sheetList.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{valueString}]: The value is empty or invalid.");
                 }
 
-                _tempStrBuilder.AppendLineWithTab($"public {type} {field} = {value};", 2);
+                StringBuilder.AppendTab($"public {type} {field} = {value};", 2);
             }
 
-            if (_tempStrBuilder.Length == 0)
+            if (StringBuilder.Length == 0)
             {
                 return string.Empty;
             }
 
-            var contentString = _tempStrBuilder.ToString();
-            _tempStrBuilder.Clear();
+            var contentString = StringBuilder.ToString();
+            StringBuilder.Clear();
 
-            _tempStrBuilder.AppendLineWithTab($"public class {fileName}");
-            _tempStrBuilder.AppendLineWithTab("{");
-            _tempStrBuilder.Append(contentString);
-            _tempStrBuilder.AppendLineWithTab("}");
-            return _tempStrBuilder.ToString();
+            StringBuilder.AppendTab($"public class {fileName}");
+            StringBuilder.AppendTab("{");
+            StringBuilder.Append(contentString);
+            StringBuilder.AppendTab("}");
+            return StringBuilder.ToString();
         }
 
         private static void ThrowException(ISheetData sheetDataA, ISheetData sheetDataB)
         {
-            var aExcelName = sheetDataA.ExcelName;
+            var aExcelName = sheetDataA.ExcelExcel;
             var aSheetName = sheetDataA.SheetName;
 
-            var bExcelName = sheetDataB.ExcelName;
+            var bExcelName = sheetDataB.ExcelExcel;
             var bSheetName = sheetDataB.SheetName;
 
             var sheetA = $"ExcelA[{aExcelName}] SheetA[{aSheetName}] ;";

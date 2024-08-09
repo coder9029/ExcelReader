@@ -3,11 +3,11 @@ using System.Linq;
 using System.Text;
 using NPOI.SS.UserModel;
 
-namespace Config
+namespace ExcelReader
 {
     public static class ExcelReaderHelper
     {
-        public static StringBuilder AppendLineWithTab(this StringBuilder strBuilder, string value, int count = 1)
+        public static StringBuilder AppendTab(this StringBuilder strBuilder, string value, int count = 1)
         {
             var str = string.Empty;
             for (var i = 0; i < count; i++)
@@ -65,30 +65,32 @@ namespace Config
             return false;
         }
 
-        public static bool GetFieldType(this string str, out string type)
+        public static string ClearRemark(this string str)
         {
-            type = str;
-            return true;
+            var index = str?.IndexOf('#') ?? -1;
+            return index == -1 ? str : str[..index];
         }
 
-        public static bool GetFiledValue(this string str, string type, out string value)
+        public static string GetFieldType(this string str)
+        {
+            return str;
+        }
+
+        public static string GetFiledValue(this string str, string type)
         {
             if (type == "bool")
             {
-                value = str.ToLower();
-                return true;
+                return str.ToLower();
             }
 
             if (type == "float")
             {
-                value = $"{str}f";
-                return true;
+                return $"{str}f";
             }
 
             if (type == "string")
             {
-                value = str.StartsWith("$\"") && str.EndsWith('"') ? str : $"\"{str}\"";
-                return true;
+                return str.StartsWith("$\"") && str.EndsWith('"') ? str : $"\"{str}\"";
             }
 
             if (type.EndsWith("[]") && !type.EndsWith("[][]"))
@@ -104,10 +106,10 @@ namespace Config
                         continue;
                     }
 
-                    if (!tempItem.GetFiledValue(keyType, out var realValue))
+                    var realValue = tempItem.GetFiledValue(keyType);
+                    if (string.IsNullOrEmpty(realValue))
                     {
-                        value = null;
-                        return false;
+                        return null;
                     }
 
                     if (string.IsNullOrEmpty(keyValue))
@@ -120,8 +122,7 @@ namespace Config
                     }
                 }
 
-                value = $"new[] {{ {keyValue} }}";
-                return true;
+                return $"new[] {{ {keyValue} }}";
             }
 
             if (type.EndsWith("[][]"))
@@ -143,10 +144,10 @@ namespace Config
                         continue;
                     }
 
-                    if (!tempItem.GetFiledValue(keyType, out var realValue))
+                    var realValue = tempItem.GetFiledValue(keyType);
+                    if (string.IsNullOrEmpty(realValue))
                     {
-                        value = null;
-                        return false;
+                        return null;
                     }
 
                     if (string.IsNullOrEmpty(keyValue))
@@ -159,12 +160,10 @@ namespace Config
                     }
                 }
 
-                value = $"new[] {{ {keyValue} }}";
-                return true;
+                return $"new[] {{ {keyValue} }}";
             }
 
-            value = null;
-            return false;
+            return null;
         }
 
         public static bool IsDictKeyValid(this string str)

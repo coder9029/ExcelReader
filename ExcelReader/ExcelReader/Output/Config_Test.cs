@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NPOI.POIFS.Crypt;
 
-namespace Config
+namespace ExcelReader
 {
 	public partial class Config_Test
 	{
@@ -74,6 +74,25 @@ namespace Config
 		
 		private static readonly Dictionary<int, Dictionary<int, List<Text2>>> _mConfigSheet3 = new();
 
+
+		private static List<Text2> Asda;
+
+		private static List<Text2> GetAsda()
+		{
+			if (Asda == null)
+			{
+				Asda = new List<Text2>()
+				{
+					new Text2()
+					{
+
+					},
+				};
+			}
+			
+			return Asda;
+		}
+		
 		public static List<Text2> ConfigSheet3(int key, int key2)
 		{
 			switch (key)
@@ -94,7 +113,14 @@ namespace Config
 							{
 								ss2 = new List<Text2>()
 								{
-
+									new Text2()
+									{
+										
+									},
+									new Text2()
+									{
+										
+									},
 								};
 								ss1[1] = ss2;
 							}

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Config
+namespace ExcelReader
 {
     internal class Program
     {

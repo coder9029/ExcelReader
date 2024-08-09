@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace Config
+namespace ExcelReader
 {
 	public partial class Test
 	{

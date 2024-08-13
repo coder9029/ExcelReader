@@ -6,21 +6,21 @@ namespace ExcelReader;
 public class SheetEnum : ISheetData
 {
     public readonly ISheet SheetData;
-    public readonly string TableName;
-    public string ExcelExcel { get; }
+    public string ExcelName { get; }
     public string SheetName { get; }
+    public string FieldName { get; }
 
-    public SheetEnum(ISheet sheetData, string excelExcel)
+    public SheetEnum(ISheet sheetData, string excelName)
     {
         var sheetName = sheetData.SheetName;
         if (sheetName.Contains('@') || sheetName.Contains('&'))
         {
-            throw new Exception($"Excel[{excelExcel}] Sheet[{sheetName}]: Enum sheet name cannot contain '@' or '&'.");
+            throw new Exception($"Excel[{excelName}] Sheet[{sheetName}]: Enum sheet name cannot contain '@' or '&'.");
         }
 
         SheetData = sheetData;
-        ExcelExcel = excelExcel;
+        ExcelName = excelName;
         SheetName = sheetName;
-        TableName = sheetName.ClearRemark();
+        FieldName = sheetName.ClearRemark();
     }
 }

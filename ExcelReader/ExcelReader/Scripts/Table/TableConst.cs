@@ -7,7 +7,7 @@ using NPOI.SS.UserModel;
 
 namespace ExcelReader;
 
-public class TableConst : ITableCollector
+public class TableConst : ITableData
 {
     private readonly List<IRow> iRowData;
 

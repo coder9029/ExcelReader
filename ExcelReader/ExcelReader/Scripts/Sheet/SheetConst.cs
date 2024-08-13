@@ -6,9 +6,9 @@ namespace ExcelReader;
 public class SheetConst : ISheetData
 {
     public readonly ISheet SheetData;
-    public readonly string TableName;
-    public string ExcelExcel { get; }
+    public string ExcelName { get; }
     public string SheetName { get; }
+    public string FieldName { get; }
 
     public SheetConst(ISheet sheetData, string excelExcel)
     {
@@ -19,8 +19,8 @@ public class SheetConst : ISheetData
         }
 
         SheetData = sheetData;
-        ExcelExcel = excelExcel;
+        ExcelName = excelExcel;
         SheetName = sheetName;
-        TableName = sheetName.ClearRemark();
+        FieldName = sheetName.ClearRemark();
     }
 }

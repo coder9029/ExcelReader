@@ -2,7 +2,9 @@
 
 public interface ISheetData
 {
-    public string ExcelExcel { get; }
+    public string ExcelName { get; }
 
     public string SheetName { get; }
+
+    public string FieldName { get; }
 }

@@ -17,6 +17,9 @@ namespace ExcelReader
 
         private const string ClassName = "TableComponent";
 
+        private static readonly List<ISheetData> _iSheetData = new();
+        private static readonly Dictionary<string, ITableData> _iTableData = new();
+
         private static readonly Dictionary<string, List<object>> _excelCollector = new();
 
         public static readonly StringBuilder StringBuilder = new();
@@ -46,71 +49,107 @@ namespace ExcelReader
                 Directory.CreateDirectory(outPath);
             }
 
-            foreach (var file in Directory.GetFiles(dirPath, string.Empty, SearchOption.AllDirectories))
+            CollectSheet(dirPath);
+            CollectTable();
+
+            Console.WriteLine("Excel data is generated successfully.");
+        }
+
+        private static void CollectSheet(string dirPath)
+        {
+            foreach (var filePath in Directory.GetFiles(dirPath, string.Empty, SearchOption.AllDirectories))
             {
-                var fileName = Path.GetFileNameWithoutExtension(file);
+                var fileName = Path.GetFileNameWithoutExtension(filePath);
                 if (fileName.StartsWith('~') || fileName.StartsWith('#'))
                 {
                     continue;
                 }
 
-                var fileExt = Path.GetExtension(file).ToLower();
+                var fileExt = Path.GetExtension(filePath).ToLower();
                 if (fileExt != ".xls" && fileExt != ".xlsx")
                 {
                     continue;
                 }
 
-                CollectExcel(file);
-                GenerateScript(fileName, outPath);
-            }
+                using var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
 
-            Console.WriteLine("Excel data is generated successfully.");
+                IWorkbook workbook = Path.GetExtension(filePath).ToLower() switch
+                {
+                    ".xls" => new HSSFWorkbook(fileStream),
+                    ".xlsx" => new XSSFWorkbook(fileStream),
+                    _ => throw new Exception($"File[{filePath}]: Only support xls/xlsx files."),
+                };
+
+                for (var i = 0; i < workbook.NumberOfSheets; i++)
+                {
+                    var sheetData = workbook.GetSheetAt(i);
+                    try
+                    {
+                        if (sheetData == null || sheetData.SheetName.StartsWith('#'))
+                        {
+                            continue;
+                        }
+
+                        var sheetName = sheetData.SheetName;
+                        var sheetParam = sheetData.GetRow(0)?.GetCell(0)?.ToString();
+
+                        if (!sheetParam.GetSheetParam(out _, out var sheetType))
+                        {
+                            throw new Exception($"Sheet[{sheetData.SheetName}]: The sheet first cell does not comply with the rule.");
+                        }
+
+                        if (sheetType == "Enum")
+                        {
+                            _iSheetData.Add(new SheetEnum(sheetData, fileName));
+                            continue;
+                        }
+
+                        if (sheetType == "Const")
+                        {
+                            _iSheetData.Add(new SheetConst(sheetData, fileName));
+                            continue;
+                        }
+
+                        if (sheetName.Contains('@'))
+                        {
+                            _iSheetData.Add(new SheetMerge(sheetData, fileName));
+                        }
+                        else
+                        {
+                            _iSheetData.Add(new SheetValue(sheetData, fileName));
+                        }
+                    }
+                    catch (Exception exception)
+                    {
+                        Console.WriteLine(exception);
+                        throw;
+                    }
+                }
+            }
         }
 
-        private static void CollectExcel(string file)
+        private static void CollectTable()
         {
-            using var fileStream = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-
-            IWorkbook workbook = null;
-            var fileExt = Path.GetExtension(file).ToLower();
-            if (fileExt == ".xls")
+            foreach (var sheetData in _iSheetData)
             {
-                workbook = new HSSFWorkbook(fileStream);
-            }
-
-            if (fileExt == ".xlsx")
-            {
-                workbook = new XSSFWorkbook(fileStream);
-            }
-
-            if (workbook == null)
-            {
-                throw new Exception($"File[{file}]: Only support xls/xlsx files.");
-            }
-
-            var fileName = Path.GetFileNameWithoutExtension(file);
-
-            for (var i = 0; i < workbook.NumberOfSheets; i++)
-            {
-                var sheet = workbook.GetSheetAt(i);
-                try
+                if (sheetData is SheetEnum sheetEnum)
                 {
-                    if (sheet == null || sheet.SheetName.StartsWith('#'))
-                    {
-                        continue;
-                    }
+                    _iTableData.Add(new TableEnum(sheetEnum));
+                    continue;
+                }
+            }
+            
+            void ThrowException(ISheetData sheetDataA, ISheetData sheetDataB)
+            {
+                var aExcelName = sheetDataA.ExcelName;
+                var aSheetName = sheetDataA.SheetName;
 
-                    var sheetData = sheet.GetSheetParam(fileName);
-                    CollectEnum(sheetData);
-                    CollectConst(sheetData);
-                    CollectValue(sheetData);
-                    CollectMerge(sheetData);
-                }
-                catch (Exception exception)
-                {
-                    Console.WriteLine(exception);
-                    throw;
-                }
+                var bExcelName = sheetDataB.ExcelName;
+                var bSheetName = sheetDataB.SheetName;
+
+                var sheetA = $"ExcelA[{aExcelName}] SheetA[{aSheetName}] ;";
+                var sheetB = $"ExcelB[{bExcelName}] SheetB[{bSheetName}] ;";
+                throw new Exception($"{sheetA} {sheetB} : A and B conflict.");
             }
         }
 
@@ -121,10 +160,10 @@ namespace ExcelReader
                 return;
             }
 
-            if (!_excelCollector.TryGetValue(sheetEnum.ExcelExcel, out var sheetItems))
+            if (!_excelCollector.TryGetValue(sheetEnum.ExcelName, out var sheetItems))
             {
                 sheetItems = [];
-                _excelCollector[sheetEnum.ExcelExcel] = sheetItems;
+                _excelCollector[sheetEnum.ExcelName] = sheetItems;
             }
 
             foreach (var objects in sheetItems)
@@ -161,10 +200,10 @@ namespace ExcelReader
                 return;
             }
 
-            if (!_excelCollector.TryGetValue(sheetConst.ExcelExcel, out var sheetItems))
+            if (!_excelCollector.TryGetValue(sheetConst.ExcelName, out var sheetItems))
             {
                 sheetItems = [];
-                _excelCollector[sheetConst.ExcelExcel] = sheetItems;
+                _excelCollector[sheetConst.ExcelName] = sheetItems;
             }
 
             foreach (var objects in sheetItems)
@@ -201,10 +240,10 @@ namespace ExcelReader
                 return;
             }
 
-            if (!_excelCollector.TryGetValue(sheetValue.ExcelExcel, out var sheetItems))
+            if (!_excelCollector.TryGetValue(sheetValue.ExcelName, out var sheetItems))
             {
                 sheetItems = [];
-                _excelCollector[sheetValue.ExcelExcel] = sheetItems;
+                _excelCollector[sheetValue.ExcelName] = sheetItems;
             }
 
             List<ISheetData> sheetList = null;
@@ -325,7 +364,7 @@ namespace ExcelReader
                 return;
             }
 
-            if (_excelCollector.TryGetValue(mergeData.ExcelExcel, out var sheetItem))
+            if (_excelCollector.TryGetValue(mergeData.ExcelName, out var sheetItem))
             {
                 foreach (var (fieldName, sheetType, sheetList) in sheetItem)
                 {
@@ -343,7 +382,7 @@ namespace ExcelReader
                     var recordExcelName = recordSheetData.ExcelName;
                     var recordSheetName = recordSheetData.SheetName;
 
-                    var targetExcelName = mergeData.ExcelExcel;
+                    var targetExcelName = mergeData.ExcelName;
                     var targetSheetName = mergeData.SheetName;
 
                     var sheetA = $"ExcelA[{recordExcelName}] SheetA[{recordSheetName}] ;";
@@ -354,7 +393,7 @@ namespace ExcelReader
             else
             {
                 sheetItem = [];
-                _excelCollector[mergeData.ExcelExcel] = sheetItem;
+                _excelCollector[mergeData.ExcelName] = sheetItem;
             }
 
             sheetItem.Add((mergeData.FieldName, ESheetCollector.Value, [mergeData]));
@@ -392,7 +431,7 @@ namespace ExcelReader
             //             throw new Exception($"Sheet[{sheetData.SheetName}] - Row[2] - Col[{i + 1}] - Value[{type}]: The value is empty or invalid.");
             //         }
             //
-            //         _tempSheetColumn.Add(i, (field, type));
+            //         _tempSheetColumn.Add(i, (field, type·12345什么，/));
             //     }
             //
             //     if (_tempSheetColumn.Count == 0)
@@ -605,7 +644,7 @@ namespace ExcelReader
 
             if (sheetObject is SheetConst sheetConst)
             {
-                return  GenerateConst(sheetConst, out fileName);
+                return GenerateConst(sheetConst, out fileName);
             }
 
             if (sheetObject is List<ISheetData> sheetList)
@@ -619,7 +658,7 @@ namespace ExcelReader
 
         private static string GenerateEnum(SheetEnum sheetEnum, out string fileName)
         {
-            fileName = $"{sheetEnum.ExcelExcel}{sheetEnum.FieldName}{SheetSuffix}";
+            fileName = $"{sheetEnum.ExcelName}{sheetEnum.FieldName}{SheetSuffix}";
 
             StringBuilder.Clear();
 
@@ -657,7 +696,7 @@ namespace ExcelReader
                 var value = rowItem.GetCell(valueColumn)?.ToString();
                 if (string.IsNullOrEmpty(value))
                 {
-                    throw new Exception($"Excel[{sheetEnum.ExcelExcel}] Sheet[{sheetEnum.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{value}]: The value is empty.");
+                    throw new Exception($"Excel[{sheetEnum.ExcelName}] Sheet[{sheetEnum.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{value}]: The value is empty.");
                 }
 
                 StringBuilder.AppendTab($"{field} = {value},", 2);
@@ -680,7 +719,7 @@ namespace ExcelReader
 
         private static string GenerateConst(SheetConst sheetConst, out string fileName)
         {
-            fileName = $"{sheetConst.ExcelExcel}{sheetConst.TableName}{SheetSuffix}";
+            fileName = $"{sheetConst.ExcelName}{sheetConst.TableName}{SheetSuffix}";
 
             StringBuilder.Clear();
 
@@ -713,7 +752,7 @@ namespace ExcelReader
                 var typeString = rowItem.GetCell(typeColumn)?.ToString();
                 if (string.IsNullOrEmpty(typeString) || !typeString.GetFieldType(out var type))
                 {
-                    throw new Exception($"Excel[{sheetConst.ExcelExcel}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{typeColumn + 1}] - Value[{typeString}]: The value is empty or invalid.");
+                    throw new Exception($"Excel[{sheetConst.ExcelName}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{typeColumn + 1}] - Value[{typeString}]: The value is empty or invalid.");
                 }
 
                 var summary = rowItem.GetCell(summaryColumn)?.ToString();
@@ -725,7 +764,7 @@ namespace ExcelReader
                 var valueString = rowItem.GetCell(valueColumn)?.ToString();
                 if (string.IsNullOrEmpty(valueString) || !valueString.GetFiledValue(typeString, out var value))
                 {
-                    throw new Exception($"Excel[{sheetConst.ExcelExcel}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{valueString}]: The value is empty or invalid.");
+                    throw new Exception($"Excel[{sheetConst.ExcelName}] Sheet[{sheetConst.SheetName}] - Row[{i + 1}] - Col[{valueColumn + 1}] - Value[{valueString}]: The value is empty or invalid.");
                 }
 
                 StringBuilder.AppendTab($"public {type} {field} = {value};", 2);
@@ -816,10 +855,10 @@ namespace ExcelReader
 
         private static void ThrowException(ISheetData sheetDataA, ISheetData sheetDataB)
         {
-            var aExcelName = sheetDataA.ExcelExcel;
+            var aExcelName = sheetDataA.ExcelName;
             var aSheetName = sheetDataA.SheetName;
 
-            var bExcelName = sheetDataB.ExcelExcel;
+            var bExcelName = sheetDataB.ExcelName;
             var bSheetName = sheetDataB.SheetName;
 
             var sheetA = $"ExcelA[{aExcelName}] SheetA[{aSheetName}] ;";

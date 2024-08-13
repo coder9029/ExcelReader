@@ -2,6 +2,6 @@
 
 namespace ExcelReader;
 
-public interface ITableCollector
+public interface ITableData
 {
 }

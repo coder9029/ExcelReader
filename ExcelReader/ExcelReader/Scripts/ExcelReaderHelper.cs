@@ -71,6 +71,21 @@ namespace ExcelReader
             return index == -1 ? str : str[..index];
         }
 
+        public static bool GetSheetParam(this string str, out string name, out string type)
+        {
+            if (string.IsNullOrEmpty(str) || !str.Contains(' '))
+            {
+                name = default;
+                type = default;
+                return false;
+            }
+
+            var paramArray = str.Split(' ');
+            name = paramArray[0];
+            type = paramArray[1];
+            return true;
+        }
+
         public static string GetFieldType(this string str)
         {
             return str;

@@ -5,6 +5,7 @@ namespace ExcelReader;
 
 public class SheetValue : ISheetData
 {
+    public const string Suffix = "Table";
     public readonly ISheet SheetData;
     public readonly string TableName;
     public string ExcelName { get; }
@@ -23,12 +24,12 @@ public class SheetValue : ISheetData
         if (sheetName.Contains('&'))
         {
             var renameArray = sheetName.Split('&');
-            FieldName = renameArray[1];
+            FieldName = $"{excelExcel}{renameArray[1]}{Suffix}";
             TableName = renameArray[0];
         }
         else
         {
-            FieldName = sheetName;
+            FieldName = $"{excelExcel}{sheetName}{Suffix}";
             TableName = sheetName;
         }
     }

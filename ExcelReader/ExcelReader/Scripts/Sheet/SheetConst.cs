@@ -5,6 +5,8 @@ namespace ExcelReader;
 
 public class SheetConst : ISheetData
 {
+    public const string Suffix = "Const";
+
     public readonly ISheet SheetData;
     public string ExcelName { get; }
     public string SheetName { get; }
@@ -21,6 +23,6 @@ public class SheetConst : ISheetData
         SheetData = sheetData;
         ExcelName = excelExcel;
         SheetName = sheetName;
-        FieldName = sheetName.ClearRemark();
+        FieldName = $"{excelExcel}{sheetName.ClearRemark()}{Suffix}";
     }
 }

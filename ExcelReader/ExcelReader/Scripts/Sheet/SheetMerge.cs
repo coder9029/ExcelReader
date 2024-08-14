@@ -31,14 +31,14 @@ public class SheetMerge : ISheetData
 
         if (!mergeString.Contains('.'))
         {
-            FieldName = mergeString;
             MergeExcel = excelExcel;
+            FieldName = $"{excelExcel}{mergeString}{SheetValue.Suffix}";
         }
         else
         {
             var pointArray = mergeString.Split('.');
-            FieldName = pointArray[1];
             MergeExcel = pointArray[0];
+            FieldName = $"{pointArray[0]}{pointArray[1]}{SheetValue.Suffix}";;
         }
     }
 }

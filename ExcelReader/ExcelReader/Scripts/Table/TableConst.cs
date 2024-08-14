@@ -11,7 +11,7 @@ public class TableConst : ITableData
 {
     private readonly List<IRow> iRowData;
 
-    public TableConst(Dictionary<int, SheetHeader> header, int index)
+    public TableConst(SheetConst sheetEnum)
     {
     }
 }

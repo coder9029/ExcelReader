@@ -5,6 +5,8 @@ namespace ExcelReader;
 
 public class SheetEnum : ISheetData
 {
+    public const string Prefix = "E";
+
     public readonly ISheet SheetData;
     public string ExcelName { get; }
     public string SheetName { get; }
@@ -21,6 +23,6 @@ public class SheetEnum : ISheetData
         SheetData = sheetData;
         ExcelName = excelName;
         SheetName = sheetName;
-        FieldName = sheetName.ClearRemark();
+        FieldName = $"{Prefix}{excelName}{sheetName.ClearRemark()}";
     }
 }
